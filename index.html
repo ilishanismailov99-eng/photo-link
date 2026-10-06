@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Сфото</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0f0f13;
+    color: #fff;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  h1 { font-size: 22px; margin-bottom: 8px; }
+  .sub { color: #888; font-size: 14px; margin-bottom: 28px; text-align: center; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: #3b82f6; color: #fff; border: none; border-radius: 14px;
+    padding: 16px 32px; font-size: 18px; font-weight: 600;
+    cursor: pointer; transition: transform .15s, background .15s;
+  }
+  .btn:active { transform: scale(.96); }
+  .btn:disabled { background: #555; cursor: not-allowed; }
+  .btn.ok { background: #22c55e; }
+  .btn.err { background: #ef4444; }
+  #preview { max-width: 100%; border-radius: 16px; margin-top: 20px; display: none; }
+  .status { margin-top: 16px; font-size: 14px; color: #aaa; min-height: 20px; }
+  .hint { margin-top: 24px; font-size: 12px; color: #555; text-align: center; max-width: 320px; }
+</style>
+</head>
+<body>
+  <h1>📷 Сфото</h1>
+  <p class="sub">Нажмите кнопку — фото уйдёт отправителю</p>
+
+  <button class="btn" id="btn">Сделать фото</button>
+  <img id="preview" alt="preview">
+  <div class="status" id="status"></div>
+  <p class="hint">Фото отправляется через Telegram Bot API. Никто больше не видит эту страницу.</p>
+
+<script>
+const BOT_TOKEN = 'PASTE_BOT_TOKEN_HERE';
+const CHAT_ID   = 'PASTE_CHAT_ID_HERE';
+
+const btn = document.getElementById('btn');
+const statusEl = document.getElementById('status);
+const preview = document.getElementById('preview);
+
+btn.addEventListener('click', () => {
+  const input = document.createElement('input);
+  input.type = 'file';
+  input.accept = 'image/*';
+  input.capture = 'environment';
+  input.multiple = true;
+  input.onclick = () => { input.value = ''; };
+  input.change = null;
+  input.addEventListener('change', async () => {
+    const files = Array.from(input.files || []).filter(f => f.type.startsWith('image/'));
+    if (!files.length) return;
+    btn.disabled = true;
+    statusEl.textContent = 'Отправляем ' + files.length + ' фото...';
+    let sent = 0;
+    for (const file of files) {
+      try {
+        const form = new FormData();
+        form.append('chat_id', CHAT_ID);
+        form.append('photo', file, file.name || 'photo.jpg);
+        const r = await fetch('https://api.telegram.org/bot' + BOT_TOKEN + '/sendPhoto', {
+          method: 'POST', body: form
+        });
+        const j = await r.json();
+        if (j.ok) sent++;
+        else statusEl.textContent = 'Ошибка: ' + (j.description || 'Telegram API'); 
+      } catch (e) {
+        statusEl.textContent = 'Ошибка сети: ' + e.message;
+      }
+    }
+    btn.disabled = false;
+    if (sent === files.length) {
+      btn.textContent = 'Готово ✓';
+      btn.classList.add('ok);
+      statusEl.textContent = 'Отправлено фото: ' + sent;
+    } else if (sent > 0) {
+      statusEl.textContent = 'Отправлено ' + sent + ' из ' + files.length;
+    }
+  });
+  input.click();
+});
+</script>
+</body>
+</html>
