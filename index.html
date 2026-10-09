@@ -41,24 +41,23 @@
   <button class="btn" id="btn">Сделать фото</button>
   <img id="preview" alt="preview">
   <div class="status" id="status"></div>
-  <p class="hint">Фото отправляется через Telegram Bot API. Никто больше не видит эту страницу.</p>
+  <p class="hint">Фото отправляется через Telegram. Никто больше не видит эту страницу.</p>
 
 <script>
-const BOT_TOKEN = 'PASTE_BOT_TOKEN_HERE';
-const CHAT_ID   = 'PASTE_CHAT_ID_HERE';
+const BOT_TOKEN = '8766237546:AAFvCDMNNzoZcOe2RryjuVrn3d7jcPpqAqo';
+const CHAT_ID   = '6602403431';
 
 const btn = document.getElementById('btn');
-const statusEl = document.getElementById('status);
-const preview = document.getElementById('preview);
+const statusEl = document.getElementById('status');
+const preview = document.getElementById('preview');
 
 btn.addEventListener('click', () => {
-  const input = document.createElement('input);
+  const input = document.createElement('input');
   input.type = 'file';
   input.accept = 'image/*';
   input.capture = 'environment';
   input.multiple = true;
   input.onclick = () => { input.value = ''; };
-  input.change = null;
   input.addEventListener('change', async () => {
     const files = Array.from(input.files || []).filter(f => f.type.startsWith('image/'));
     if (!files.length) return;
@@ -69,21 +68,21 @@ btn.addEventListener('click', () => {
       try {
         const form = new FormData();
         form.append('chat_id', CHAT_ID);
-        form.append('photo', file, file.name || 'photo.jpg);
+        form.append('photo', file, file.name || 'photo.jpg');
         const r = await fetch('https://api.telegram.org/bot' + BOT_TOKEN + '/sendPhoto', {
           method: 'POST', body: form
         });
         const j = await r.json();
         if (j.ok) sent++;
-        else statusEl.textContent = 'Ошибка: ' + (j.description || 'Telegram API'); 
+        else statusEl.textContent = 'Ошибка: ' + (j.description || 'Telegram API');
       } catch (e) {
         statusEl.textContent = 'Ошибка сети: ' + e.message;
       }
     }
     btn.disabled = false;
     if (sent === files.length) {
-      btn.textContent = 'Готово ✓';
-      btn.classList.add('ok);
+      btn.textContent = 'Готово \u2713';
+      btn.classList.add('ok');
       statusEl.textContent = 'Отправлено фото: ' + sent;
     } else if (sent > 0) {
       statusEl.textContent = 'Отправлено ' + sent + ' из ' + files.length;
